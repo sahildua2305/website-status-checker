@@ -1,0 +1,79 @@
+#!/usr/bin/env python
+
+import appindicator, gtk, requests, signal, time, pynotify, threading
+
+APPINDICATOR_ID = 'website-status-checker'
+headers = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/43.0.2357.130 Safari/537.36"
+default_url = "http://sahildua.com"
+INTERVAL = 5
+
+def main():
+    indicator = appindicator.Indicator(APPINDICATOR_ID, gtk.STOCK_EXECUTE, appindicator.CATEGORY_APPLICATION_STATUS)
+    indicator.set_status(appindicator.STATUS_ACTIVE)
+    indicator.set_menu(build_menu())
+
+    thread = threading.Thread(target = update_status_test)
+    thread.daemon = True
+    thread.start()
+
+    gtk.main()
+
+def popup(title, message):
+	pynotify.init("website_status_notification")
+	pop = pynotify.Notification(title, message)
+	pop.show()
+
+def build_menu():
+	menu = gtk.Menu()
+	# Menu sub-item for showing simple text
+	item_title = gtk.MenuItem("Website Status check by Sahil Dua")
+	# Menu sub-item for check-status option
+	item_url_1 = gtk.MenuItem("http://sahildua.com")
+	item_url_1.connect('activate', check_status)
+	# Menu sub-item for quit option
+	item_quit = gtk.MenuItem("Quit")
+	item_quit.connect('activate', quit)
+	# Append all items to the menu
+	menu.append(item_title)
+	menu.append(item_url_1)
+	menu.append(item_quit)
+	# Show all items appended in the menu
+	menu.show_all()
+	return menu
+
+def update_status_test():
+	url = "http://sahildua.com"
+	last_status = "up"
+	timeout = False
+	while True:
+		print "New test started"
+		try:
+			response = requests.get(url, headers={'user_agent': headers}, timeout=10)
+		except requests.exceptions.Timeout, requests.exceptions.ConnectionError:
+			curr_status = "down"
+			timeout = True
+		if not timeout and response.status_code == 200:
+			curr_status = "up"
+		else:
+			curr_status = "down"
+			timeout = False
+		if curr_status != last_status:
+			popup(url, "\nWebsite is "+curr_status)
+			last_status = curr_status
+		time.sleep(10)
+
+def check_status(source):
+	# Doing nothing as of now.
+	# Used for testing purposes
+	url = source.get_label()
+	# response = requests.get(url, headers={'User-Agent': headers})
+	# print response.status_code
+
+def quit(source):
+	gtk.main_quit()
+
+if __name__ == "__main__":
+	# For making Ctrl+C do it's default action
+	signal.signal(signal.SIGINT, signal.SIG_DFL)
+	popup("Website Status Checker", "Currently tracking following website(s):\n"+default_url)
+	main()
