@@ -12,6 +12,7 @@ def main():
     indicator.set_status(appindicator.STATUS_ACTIVE)
     indicator.set_menu(build_menu())
 
+    # Start a thread for updating the status of the website
     thread = threading.Thread(target = update_status_test)
     thread.daemon = True
     thread.start()
