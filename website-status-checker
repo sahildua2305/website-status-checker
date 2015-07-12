@@ -1,10 +1,12 @@
 #!/usr/bin/env python
-import appindicator, gtk, requests, signal, time, pynotify, threading
+import appindicator, gtk, requests, signal, time, pynotify, threading, gobject
 
 APPINDICATOR_ID = 'website-status-checker'
 headers = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/43.0.2357.130 Safari/537.36"
 default_url = "http://sahildua.com"
 INTERVAL = 5
+
+gobject.threads_init()
 
 def main():
     indicator = appindicator.Indicator(APPINDICATOR_ID, gtk.STOCK_EXECUTE, appindicator.CATEGORY_APPLICATION_STATUS)
@@ -15,7 +17,6 @@ def main():
     thread = threading.Thread(target = update_status_test)
     thread.daemon = True
     thread.start()
-
     gtk.main()
 
 def popup(title, message):
